@@ -97,7 +97,7 @@ _avl_node_rotate_right(struct avl_node *node, struct avl_root *root)
 	struct avl_node *left = node->left;
 	struct avl_node *parent = node->parent;
 	node->left = left->right;
-	ASSERTION(node && right);
+	ASSERTION(node && left);
 	if (left->right) 
 		left->right->parent = node;
 	left->right = node;
@@ -163,7 +163,7 @@ _avl_node_fix_r(struct avl_node *node, struct avl_root *root)
 {
 	struct avl_node *left = node->left;
 	int rh0, rh1;
-	ASSERTION(right);
+	ASSERTION(left);
 	rh0 = AVL_LEFT_HEIGHT(left);
 	rh1 = AVL_RIGHT_HEIGHT(left);
 	if (rh0 < rh1) {
@@ -252,7 +252,7 @@ void avl_node_erase(struct avl_node *node, struct avl_root *root)
 		node->parent = old->parent;
 		node->height = old->height;
 		_avl_child_replace(old, node, old->parent, root);
-		ASSERTION(old->child[AVL_LEFT]);
+		ASSERTION(old->left);
 		old->left->parent = node;
 		if (old->right) {
 			old->right->parent = node;
