@@ -47,3 +47,13 @@ Linux kernel 的 rbtree 应该不会有大的什么性能问题吧？拿它作�
 
 我们的 avlmini 性能超同样 rbtree 实现的 std::map 不少，可见 avl 被误会很深。
 
+
+## 结论
+
+AVL 不比 linux rbtree 差，比 std::map 好很多，类似的结论见：
+
+- [Comparison of Binary Search Trees (BSTs)](https://attractivechaos.wordpress.com/2008/10/02/comparison-of-binary-search-trees/)
+
+- [AVL vs STL Map](http://stlavlmap.sourceforge.net/)
+
+以上.
