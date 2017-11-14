@@ -200,13 +200,13 @@ total: 3890ms
 linux rbtree with 1000000 nodes:
 insert time: 187ms, height=27
 search time: 125ms error=0
-delete time: 31ms
+delete time: 39ms
 total: 343ms
 
 avlmini with 1000000 nodes:
 insert time: 188ms, height=24
 search time: 109ms error=0
-delete time: 63ms
+delete time: 48ms
 total: 360ms
 
 linux rbtree with 100000 nodes:

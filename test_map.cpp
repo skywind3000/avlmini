@@ -211,13 +211,13 @@ total: 5827ms
 linux rbtree with 1000000 nodes:
 insert time: 234ms, height=26
 search time: 110ms error=0
-delete time: 31ms
+delete time: 38ms
 total: 375ms
 
 avlmini with 1000000 nodes:
 insert time: 266ms, height=23
 search time: 109ms error=0
-delete time: 45ms
+delete time: 44ms
 total: 420ms
 
 std::map with 1000000 nodes:
