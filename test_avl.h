@@ -53,16 +53,7 @@ struct MyNode
 	int key;
 };
 
-struct avl2_node
-{
-	struct avl2_node *left;
-	struct avl2_node *right;
-	struct avl2_node *parent;
-	int height;
-};
-
 #define avl_key(node) (((struct MyNode*)(node))->key)
-
 
 static inline struct MyNode *avl_node_new(int key)
 {
@@ -76,42 +67,6 @@ static inline int avl_node_compare(const void *n1, const void *n2)
 	struct MyNode *x = (struct MyNode*)n1;
 	struct MyNode *y = (struct MyNode*)n2;
 	return x->key - y->key;
-}
-
-static inline struct MyNode *avl2_search(struct avl_root *root, int key)
-{
-	struct avl2_node *node = (struct avl2_node*)(void*)root->node;
-	while (node) {
-		struct MyNode *data = AVL_ENTRY(node, struct MyNode, node);
-		if (key == data->key) {
-			return data;
-		}
-		else if (key < data->key) {
-			node = node->left;
-		}
-		else {
-			node = node->right;
-		}
-	}
-	return NULL;
-}
-
-static inline struct MyNode *avl_search(struct avl_root *root, int key)
-{
-	struct avl_node *node = (struct avl_node*)(void*)root->node;
-	while (node) {
-		struct MyNode *data = rb_entry(node, struct MyNode, node);
-		if (key == data->key) {
-			return data;
-		}
-		else if (key < data->key) {
-			node = node->child[0];
-		}
-		else {
-			node = node->child[1];
-		}
-	}
-	return NULL;
 }
 
 static inline int avl_test_bst(struct avl_root *tree)
@@ -138,8 +93,8 @@ static int avl_test_height(struct avl_node *node, int *error)
 		return 0;
 	}
 	else {
-		int h0 = avl_test_height(node->child[0], error);
-		int h1 = avl_test_height(node->child[1], error);
+		int h0 = avl_test_height(node->left, error);
+		int h1 = avl_test_height(node->right, error);
 		int mh = (h0 > h1)? h0 : h1;
 		int dh = (h0 > h1)? h0 - h1 : h1 - h0;
 		if (node->height != mh + 1) {
@@ -164,30 +119,30 @@ static int avl_test_father(struct avl_node *node, int *error)
 		return 0;
 	}
 	else {
-		if (node->child[0]) {
-			if (node->child[0]->parent != node) {
-				printf("n%d.child[0].parent error\n", avl_key(node));
-				if (node->child[0]->parent) {
-					printf("current parent=%d\n", avl_key(node->child[0]->parent));
+		if (node->left) {
+			if (node->left->parent != node) {
+				printf("n%d.left.parent error\n", avl_key(node));
+				if (node->left->parent) {
+					printf("current parent=%d\n", avl_key(node->left->parent));
 				}
 				if (error) error[0]++;
 				assert(0);
 				return 0;
 			}
 		}
-		if (node->child[1]) {
-			if (node->child[1]->parent != node) {
-				printf("n%d.child[1].parent error\n", avl_key(node));
-				if (node->child[1]->parent) {
-					printf("current parent=%d\n", avl_key(node->child[1]->parent));
+		if (node->right) {
+			if (node->right->parent != node) {
+				printf("n%d.right.parent error\n", avl_key(node));
+				if (node->right->parent) {
+					printf("current parent=%d\n", avl_key(node->right->parent));
 				}
 				if (error) error[0]++;
 				assert(0);
 				return 0;
 			}
 		}
-		avl_test_father(node->child[0], error);
-		avl_test_father(node->child[1], error);
+		avl_test_father(node->left, error);
+		avl_test_father(node->right, error);
 	}
 	return 0;
 }
@@ -243,11 +198,11 @@ static int avl_tree_height(struct avl_node *node)
 {
 	if (node == NULL) 
 		return 0;
-	else if (node->child[0] == NULL && node->child[1] == NULL) 
+	else if (node->left == NULL && node->right == NULL) 
 		return 1;
 	else
-		return _int_max(avl_tree_height(node->child[0]),
-				avl_tree_height(node->child[1])) + 1;
+		return _int_max(avl_tree_height(node->left),
+				avl_tree_height(node->right)) + 1;
 }
 
 #endif

@@ -7,16 +7,15 @@
 #include <stdlib.h>
 
 
-#define rb_node_find(root, what, compare_fn, res_node, res_index) do {\
+#define rb_node_find(root, what, compare_fn, res_node) do {\
 		struct rb_node *__n = (root)->rb_node; \
 		(res_node) = NULL; \
-		(res_index) = 0; \
 		while (__n) { \
 			int __hr = (compare_fn)(what, __n); \
 			(res_node) = __n; \
-			if (__hr == 0) { (res_index) = -1; break; } \
-			else if (__hr < 0) { __n = __n->rb_left; (res_index) = 0; } \
-			else { __n = __n->rb_right; (res_index) = 1; } \
+			if (__hr == 0) { (res_node) = __n; break; } \
+			else if (__hr < 0) { __n = __n->rb_left; } \
+			else { __n = __n->rb_right; } \
 		} \
 	}   while (0)
 

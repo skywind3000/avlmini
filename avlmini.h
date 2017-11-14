@@ -53,8 +53,9 @@
 /*====================================================================*/
 struct avl_node
 {
-	struct avl_node *child[2];   /* 0 for left, 1 for right, reduce branch */
-	struct avl_node *parent;     /* pointing to node itself for empty node */
+	struct avl_node *left;
+	struct avl_node *right;
+	struct avl_node *parent;    /* pointing to node itself for empty node */
 	int height;                 /* equals to 1 + max height in childs */
 };
 
@@ -81,8 +82,8 @@ struct avl_root
 #define avl_node_init(node) do { ((node)->parent) = (node); } while (0)
 #define avl_node_empty(node) ((node)->parent == (node))
 
-#define AVL_CHILD_HEIGHT(node, c)    \
-	(((node)->child[c])? ((node)->child[c])->height : 0)
+#define AVL_LEFT_HEIGHT(node) (((node)->left)? ((node)->left)->height : 0)
+#define AVL_RIGHT_HEIGHT(node) (((node)->right)? ((node)->right)->height : 0)
 
 
 #ifdef __cplusplus
@@ -105,7 +106,7 @@ static inline void avl_node_link(struct avl_node *node, struct avl_node *parent,
 		struct avl_node **avl_link) {
 	node->parent = parent;
 	node->height = 0;
-	node->child[0] = node->child[1] = NULL;
+	node->left = node->right = NULL;
 	avl_link[0] = node;
 }
 
@@ -118,18 +119,14 @@ void avl_node_erase(struct avl_node *node, struct avl_root *root);
 /* avl node templates                                                 */
 /*--------------------------------------------------------------------*/
 
-#define avl_node_find(root, what, compare_fn, res_node, res_index) do {\
+#define avl_node_find(root, what, compare_fn, res_node) do {\
 		struct avl_node *__n = (root)->node; \
 		(res_node) = NULL; \
-		(res_index) = 0; \
 		while (__n) { \
 			int __hr = (compare_fn)(what, __n); \
-			(res_node) = __n; \
-			if (__hr == 0) { (res_index) = -1; break; } \
-			else { \
-				(res_index) = (__hr > 0)? 1 : 0; \
-				__n = __n->child[res_index]; \
-			} \
+			if (__hr == 0) { (res_node) = __n; break; } \
+			else if (__hr < 0) { __n = __n->left; } \
+			else { __n = __n->right; } \
 		} \
 	}   while (0)
 
@@ -143,7 +140,8 @@ void avl_node_erase(struct avl_node *node, struct avl_root *root);
 			__parent = __link[0]; \
 			__hr = (compare_fn)(newnode, __parent); \
 			if (__hr == 0) { __duplicate = __parent; break; } \
-			else { __link = &(__parent->child[(__hr < 0)? 0 : 1]); } \
+			else if (__hr < 0) { __link = &(__parent->left); } \
+			else { __link = &(__parent->right); } \
 		} \
 		(duplicate_node) = __duplicate; \
 		if (__duplicate == NULL) { \
@@ -153,6 +151,9 @@ void avl_node_erase(struct avl_node *node, struct avl_root *root);
 	}   while (0)
 
 
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif
