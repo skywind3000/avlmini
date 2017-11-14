@@ -51,6 +51,7 @@ struct MyNode
 {
 	struct avl_node node;
 	int key;
+	int val;
 };
 
 #define avl_key(node) (((struct MyNode*)(node))->key)

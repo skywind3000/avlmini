@@ -77,7 +77,7 @@ struct avl_root
 #define AVL_DATA2NODE(d, o)    ((struct avl_node*)((size_t)(d) + (o)))
 
 #define AVL_ENTRY(ptr, type, member) \
-	AVL_NODE2DATA(ptr, AVL_OFFSET(type, member))
+	((type*)AVL_NODE2DATA(ptr, AVL_OFFSET(type, member)))
 
 #define avl_node_init(node) do { ((node)->parent) = (node); } while (0)
 #define avl_node_empty(node) ((node)->parent == (node))

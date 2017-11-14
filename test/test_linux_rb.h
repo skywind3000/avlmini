@@ -47,6 +47,7 @@ struct RbNode
 {
 	struct rb_node node;
 	int key;
+	int val;
 };
 
 
@@ -54,6 +55,7 @@ static inline struct RbNode *rb_node_new(int key)
 {
 	struct RbNode *node = (struct RbNode*)malloc(sizeof(struct RbNode));
 	node->key = key;
+	node->val = 0;
 	return node;
 }
 
