@@ -8,7 +8,7 @@
 /* LEFT is 0: walk towards left, and 1 for right */
 static inline struct avl_node *_avl_node_walk(struct avl_node *node, int LEFT)
 {
-	int RIGHT = 1 - LEFT;
+	int RIGHT = LEFT ^ 1;
 	if (node == NULL) return NULL;
 	
 	if (node->child[LEFT]) {
@@ -75,7 +75,7 @@ int avl_node_rotate_times = 0;
 static inline struct avl_node *
 _avl_node_rotate(struct avl_node *node, struct avl_root *root, int LEFT)
 {
-	int RIGHT = 1 - LEFT;
+	int RIGHT = LEFT ^ 1;
 	struct avl_node *right = node->child[RIGHT];
 	struct avl_node *parent = node->parent;
 	node->child[RIGHT] = right->child[LEFT];
@@ -137,7 +137,7 @@ _avl_node_fix(struct avl_node *node, struct avl_root *root, int LEFT)
 		right = _avl_node_rotate(right, root, RIGHT);
 		_avl_node_height_update(right->child[RIGHT]);
 		_avl_node_height_update(right);
-		_avl_node_height_update(node);
+		/* _avl_node_height_update(node); */
 	}
 	node = _avl_node_rotate(node, root, LEFT);
 	_avl_node_height_update(node->child[LEFT]);

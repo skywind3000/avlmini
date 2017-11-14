@@ -125,12 +125,19 @@ static inline struct page * rb_insert_page_cache(struct inode * inode,
 
 struct rb_node
 {
+#if 1
 	struct rb_node *rb_parent;
 	unsigned int rb_color;
-#define	RB_RED		0
-#define	RB_BLACK	1
 	struct rb_node *rb_right;
 	struct rb_node *rb_left;
+#else
+	struct rb_node *rb_right;
+	struct rb_node *rb_left;
+	struct rb_node *rb_parent;
+	unsigned int rb_color;
+#endif
+#define	RB_RED		0
+#define	RB_BLACK	1
 };
 
 struct rb_root

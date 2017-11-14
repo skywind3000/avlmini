@@ -84,6 +84,25 @@ static int rb_tree_height(struct rb_node *node)
 				rb_tree_height(node->rb_right)) + 1;
 }
 
+static inline struct RbNode *rb_search(struct rb_root *root, int key)
+{
+	struct rb_node *node = root->rb_node;
+	while (node) {
+		struct RbNode *data = rb_entry(node, struct RbNode, node);
+		if (key == data->key) {
+			return data;
+		}
+		else if (key < data->key) {
+			node = node->rb_left;
+		}
+		else {
+			node = node->rb_right;
+		}
+	}
+	return NULL;
+}
+
+
 #endif
 
 

@@ -53,6 +53,14 @@ struct MyNode
 	int key;
 };
 
+struct avl2_node
+{
+	struct avl2_node *left;
+	struct avl2_node *right;
+	struct avl2_node *parent;
+	int height;
+};
+
 #define avl_key(node) (((struct MyNode*)(node))->key)
 
 
@@ -70,6 +78,41 @@ static inline int avl_node_compare(const void *n1, const void *n2)
 	return x->key - y->key;
 }
 
+static inline struct MyNode *avl2_search(struct avl_root *root, int key)
+{
+	struct avl2_node *node = (struct avl2_node*)(void*)root->node;
+	while (node) {
+		struct MyNode *data = AVL_ENTRY(node, struct MyNode, node);
+		if (key == data->key) {
+			return data;
+		}
+		else if (key < data->key) {
+			node = node->left;
+		}
+		else {
+			node = node->right;
+		}
+	}
+	return NULL;
+}
+
+static inline struct MyNode *avl_search(struct avl_root *root, int key)
+{
+	struct avl_node *node = (struct avl_node*)(void*)root->node;
+	while (node) {
+		struct MyNode *data = rb_entry(node, struct MyNode, node);
+		if (key == data->key) {
+			return data;
+		}
+		else if (key < data->key) {
+			node = node->child[0];
+		}
+		else {
+			node = node->child[1];
+		}
+	}
+	return NULL;
+}
 
 static inline int avl_test_bst(struct avl_root *tree)
 {

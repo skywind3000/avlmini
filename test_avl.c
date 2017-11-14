@@ -7,14 +7,43 @@
 //---------------------------------------------------------------------
 // random 
 //---------------------------------------------------------------------
-typedef struct {
-	int insert_time;
-	int delete_time;
-	int search_time;
-	int total_time;
-}	MyResult;
+struct MyNode* avl_mother(struct avl_root *root, int key)
+{
+	struct avl_node *node = (struct avl_node*)(void*)root->node;
+	while (node) {
+		struct MyNode *data = AVL_ENTRY(node, struct MyNode, node);
+		if (key == data->key) {
+			return data;
+		}
+		else if (key < data->key) {
+			node = node->child[0];
+		}
+		else {
+			node = node->child[1];
+		}
+	}
+	return NULL;
+}
 
-static void _benchmark(const char *text, int mode, int count, MyResult *r)
+struct RbNode* rb_mother(struct rb_root *root, int key)
+{
+	struct rb_node *node = root->rb_node;
+	while (node) {
+		struct RbNode *data = rb_entry(node, struct RbNode, node);
+		if (key == data->key) {
+			return data;
+		}
+		else if (key < data->key) {
+			node = node->rb_left;
+		}
+		else {
+			node = node->rb_right;
+		}
+	}
+	return NULL;
+}
+
+static void benchmark(const char *text, int mode, int count)
 {
 	int *keys;
 	struct avl_node **avl_nodes = NULL;
@@ -65,15 +94,16 @@ static void _benchmark(const char *text, int mode, int count, MyResult *r)
 
 	ts = gettime() - ts;
 	total += ts;
-	r->insert_time = (int)ts;
 	printf("insert time: %dms", (int)ts);
 
 	if (mode == 0) {
 		printf(", height=%d\n", avl_tree_height(avl_root.node));
 		avl_test_validate(&avl_root);
+		avl_node_first(&avl_root);
 	}
 	else {
 		printf(", height=%d\n", rb_tree_height(rb_root.rb_node));
+		rb_first(&rb_root);
 	}
 
 	sleepms(200);
@@ -81,34 +111,25 @@ static void _benchmark(const char *text, int mode, int count, MyResult *r)
 
 	if (mode == 0) {
 		for (i = 0; i < count; i++) {
-			int key = keys[count - 1 - i];
-			struct MyNode dummy, *cvt;
-			struct avl_node *node;
-			int index;
-			dummy.key = key;
-			avl_node_find(&avl_root, &dummy.node, avl_node_compare, node, index);
-			assert(node);
-			cvt = AVL_ENTRY(node, struct MyNode, node);
-			assert(cvt->key == key);
+			int key = keys[i];
+			struct MyNode *result;
+			result = avl_search(&avl_root, key);
+			assert(result);
+			assert(result->key == key);
 		}
 	}
 	else if (mode == 1) {
 		for (i = 0; i < count; i++) {
-			int key = keys[count - 1 - i];
-			struct RbNode dummy, *cvt;
-			struct rb_node *node;
-			int index;
-			dummy.key = key;
-			rb_node_find(&rb_root, &dummy.node, rb_node_compare, node, index);
-			assert(node);
-			cvt = rb_entry(node, struct RbNode, node);
-			assert(cvt->key == key);
+			int key = keys[i];
+			struct RbNode *result;
+			result = rb_search(&rb_root, key);
+			assert(result);
+			assert(result->key == key);
 		}
 	}
 
 	ts = gettime() - ts;
 	total += ts;
-	r->search_time = (int)ts;
 	printf("search time: %dms\n", (int)ts);
 
 	sleepms(200);
@@ -132,7 +153,6 @@ static void _benchmark(const char *text, int mode, int count, MyResult *r)
 
 	ts = gettime() - ts;
 	total += ts;
-	r->delete_time = (int)ts;
 	printf("delete time: %dms\n", (int)ts);
 
 	if (avl_nodes) {
@@ -151,45 +171,6 @@ static void _benchmark(const char *text, int mode, int count, MyResult *r)
 	printf("\n");
 }
 
-void result_update(MyResult *res, MyResult *newres)
-{
-	if (res->search_time > newres->search_time)
-		res->search_time = newres->search_time;
-	if (res->insert_time > newres->insert_time)
-		res->insert_time = newres->insert_time;
-	if (res->delete_time > newres->delete_time)
-		res->delete_time = newres->delete_time;
-	res->total_time = res->search_time + res->insert_time + res->delete_time;
-}
-
-void result_print(const char *name, MyResult *res)
-{
-	printf("%s search/insert/delete=%d/%d/%d total=%d\n",
-			name, res->search_time, res->insert_time, 
-			res->delete_time, res->total_time);
-}
-
-void benchmark(int count)
-{
-	MyResult r1, r2, t;
-	int i;
-	for (i = 0; i < 3; i++) {
-		if (i == 0) {
-			_benchmark("avlmini", 0, count, &r1);
-			_benchmark("rbtree", 1, count, &r2);
-		}	else {
-			_benchmark("avlmini", 0, count, &t);
-			result_update(&r1, &t);
-			_benchmark("rbtree", 1, count, &t);
-			result_update(&r2, &t);
-		}
-	}
-	printf("count=%d:\n", count);
-	result_print("avl", &r1);
-	result_print("rbtree", &r2);
-	printf("\n");
-}
-
 void test1()
 {
 	int a[100];
@@ -203,19 +184,12 @@ void test2()
 #define COUNT    10000000
 #define COUNT2   1000000
 #define COUNT3   100000
-#if 1
-	MyResult r;
-	_benchmark("linux rbtree", 1, COUNT, &r);
-	_benchmark("avlmini", 0, COUNT, &r);
-	_benchmark("linux rbtree", 1, COUNT2, &r);
-	_benchmark("avlmini", 0, COUNT2, &r);
-	_benchmark("linux rbtree", 1, COUNT3, &r);
-	_benchmark("avlmini", 0, COUNT3, &r);
-#else
-	benchmark(COUNT);
-	benchmark(COUNT2);
-	benchmark(COUNT3);
-#endif
+	benchmark("linux rbtree", 1, COUNT);
+	benchmark("avlmini", 0, COUNT);
+	/* benchmark("linux rbtree", 1, COUNT2); */
+	/* benchmark("avlmini", 0, COUNT2); */
+	/* benchmark("linux rbtree", 1, COUNT3); */
+	/* benchmark("avlmini", 0, COUNT3); */
 }
 
 void test3()
@@ -227,47 +201,47 @@ int main(void)
 #ifdef _WIN32
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 #endif
+	printf("sizeof=%d/%d\n", sizeof(struct avl_node), sizeof(struct rb_node));
 	test2();
 	return 0;
 }
 
 
 /*
-linux rbtree with 10000000 nodes:
-insert time: 2124ms, height=33
-search time: 1875ms
-delete time: 453ms
-total: 4452ms
-
 avlmini with 10000000 nodes:
-insert time: 2344ms, height=27
-search time: 1422ms
-delete time: 531ms
-total: 4297ms
+insert time: 2156ms, height=27
+search time: 1500ms
+delete time: 532ms
+total: 4188ms
 
-linux rbtree with 1000000 nodes:
-insert time: 172ms, height=27
-search time: 188ms
-delete time: 31ms
-total: 391ms
+linux rbtree with 10000000 nodes:
+insert time: 2125ms, height=33
+search time: 1672ms
+delete time: 453ms
+total: 4250ms
 
 avlmini with 1000000 nodes:
-insert time: 218ms, height=24
+insert time: 187ms, height=24
 search time: 125ms
 delete time: 47ms
-total: 390ms
+total: 359ms
 
-linux rbtree with 100000 nodes:
-insert time: 16ms, height=20
-search time: 15ms
-delete time: 0ms
-total: 31ms
+linux rbtree with 1000000 nodes:
+insert time: 171ms, height=27
+search time: 156ms
+delete time: 31ms
+total: 358ms
 
 avlmini with 100000 nodes:
 insert time: 15ms, height=20
 search time: 0ms
 delete time: 0ms
 total: 15ms
-*/
+
+linux rbtree with 100000 nodes:
+insert time: 15ms, height=20
+search time: 16ms
+delete time: 0ms
+total: 31ms*/
 
 
