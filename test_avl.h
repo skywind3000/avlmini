@@ -185,7 +185,7 @@ static inline void random_keys(int *keys, int count, int seed)
 		array[i] = i;
 	}
 	for (i = 0; i < length; i++) {
-		int pos = rand() % count;
+		int pos = xrand() % count;
 		int key = array[pos];
 		keys[i] = key;
 		array[pos] = array[--count];
