@@ -56,4 +56,18 @@ AVL 不比 linux rbtree 差，比 std::map 好很多，类似的结论见：
 
 - [AVL vs STL Map](http://stlavlmap.sourceforge.net/)
 
-以上.
+
+# AVL-HASH
+
+树表混合结构的 key/value 容器，使用封闭寻址哈希表+AVL树保存索引，彻底解决哈希冲突，原理及性能见：
+
+https://zhuanlan.zhihu.com/p/31758048
+
+标准测试：
+
+    gcc -O3 -Wall test_map.cpp -o test_map -lstdc++ -lm
+
+冲突测试：
+
+    gcc -O3 -Wall -DSAME_HASH test_map.cpp -o test_map_collision -lstdc++ -lm
+
