@@ -275,3 +275,38 @@ void avl_node_erase(struct avl_node *node, struct avl_root *root)
 }
 
 
+/* tear down the whole tree */
+struct avl_node* avl_node_tear(struct avl_root *root, struct avl_node **next)
+{
+	struct avl_node *node = *next;
+	struct avl_node *parent;
+	if (node == NULL) {
+		if (root->node == NULL) 
+			return NULL;
+		node = root->node;
+	}
+	/* sink down to the leaf */
+	while (1) {
+		if (node->left) node = node->left;
+		else if (node->right) node = node->right;
+		else break;
+	}
+	/* tear down one leaf */
+	parent = node->parent;
+	if (parent == NULL) {
+		*next = NULL;
+		root->node = NULL;
+		return node;
+	}
+	if (parent->left == node) {
+		parent->left = NULL;
+	}	else {
+		parent->right = NULL;
+	}
+	node->height = 0;
+	*next = parent;
+	return node;
+}
+
+
+

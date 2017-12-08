@@ -114,6 +114,9 @@ static inline void avl_node_link(struct avl_node *node, struct avl_node *parent,
 void avl_node_post_insert(struct avl_node *node, struct avl_root *root);
 void avl_node_erase(struct avl_node *node, struct avl_root *root);
 
+/* tear down the whole tree */
+struct avl_node* avl_node_tear(struct avl_root *root, struct avl_node **next);
+
 
 /*--------------------------------------------------------------------*/
 /* avl node templates                                                 */
