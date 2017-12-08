@@ -181,6 +181,7 @@ static inline void random_keys(int *keys, int count, int seed)
 	int save_seed = xseed;
 	int *array = (int*)malloc(sizeof(int) * count);
 	int length = count, i;
+	xseed = seed;
 	for (i = 0; i < count; i++) {
 		array[i] = i;
 	}
