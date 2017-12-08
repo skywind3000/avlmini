@@ -178,7 +178,7 @@ void benchmark(const char *name, int mode, int count)
 void test_standard()
 {
 #define TTIMES 10000000
-	benchmark("hash", 0, TTIMES);
+	benchmark("avl-hash", 0, TTIMES);
 	benchmark("unordered_map", 1, TTIMES);
 }
 
@@ -191,7 +191,7 @@ void test_collision()
 {
 	for (int i = 1000; i <= 30000; i += 1000) {
 		printf("\n<%d>\n", i);
-		benchmark("hash", 0, i);
+		benchmark("avl-hash", 0, i);
 		benchmark("unordered_map", 1, i);
 	}
 }
