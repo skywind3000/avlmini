@@ -5,8 +5,10 @@ AVL 树需要被平反昭雪，这个 avl 实现和 linux 的 rbtree 一样高�
 
 ## 编译
 
+```text
 gcc -O3 -Wall test_avl.c -o test_avl
 gcc -O3 -Wall test_map.cpp -o test_map -lstdc++
+```
 
 ## 静态内存测评
 
