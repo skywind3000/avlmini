@@ -154,6 +154,50 @@ struct avl_node* avl_node_tear(struct avl_root *root, struct avl_node **next);
 	}   while (0)
 
 
+/*====================================================================*/
+/* avl_tree - easy interface                                          */
+/*====================================================================*/
+
+struct avl_tree
+{
+	struct avl_root root;		/* avl root */
+	size_t offset;				/* node offset in user data structure */
+	size_t size;                /* size of user data structure */
+	size_t count;				/* node count */
+	/* returns 0 for equal, -1 for n1 < n2, 1 for n1 > n2 */
+	int (*compare)(const void *n1, const void *n2);
+};
+
+
+/* initialize avltree, use AVL_OFFSET(type, member) for "offset"
+ * eg:
+ *     avl_tree_init(&mytree, mystruct_compare,
+ *          sizeof(struct mystruct_t), 
+ *          AVL_OFFSET(struct mystruct_t, node));
+ */
+void avl_tree_init(struct avl_tree *tree,
+		int (*compare)(const void*, const void*), size_t size, size_t offset);
+
+void *avl_tree_first(struct avl_tree *tree);
+void *avl_tree_last(struct avl_tree *tree);
+void *avl_tree_next(struct avl_tree *tree, void *data);
+void *avl_tree_prev(struct avl_tree *tree, void *data);
+
+/* require a temporary user structure (data) which contains the key */
+void *avl_tree_find(struct avl_tree *tree, const void *data);
+void *avl_tree_nearest(struct avl_tree *tree, const void *data);
+
+/* returns NULL for success, otherwise returns conflict node with same key */
+void *avl_tree_add(struct avl_tree *tree, void *data);
+
+void avl_tree_remove(struct avl_tree *tree, void *data);
+void avl_tree_replace(struct avl_tree *tree, void *victim, void *newdata);
+
+void avl_tree_clear(struct avl_tree *tree, void (*destroy)(void *data));
+
+
+
+
 #ifdef __cplusplus
 }
 #endif

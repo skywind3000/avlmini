@@ -309,4 +309,169 @@ struct avl_node* avl_node_tear(struct avl_root *root, struct avl_node **next)
 }
 
 
+/*====================================================================*/
+/* avl_tree - easy interface                                          */
+/*====================================================================*/
+
+void avl_tree_init(struct avl_tree *tree,
+	int (*compare)(const void*, const void*), size_t size, size_t offset)
+{
+	tree->root.node = NULL;
+	tree->offset = offset;
+	tree->size = size;
+	tree->count = 0;
+	tree->compare = compare;
+}
+
+
+void *avl_tree_first(struct avl_tree *tree)
+{
+	struct avl_node *node = avl_node_first(&tree->root);
+	if (!node) return NULL;
+	return AVL_NODE2DATA(node, tree->offset);
+}
+
+void *avl_tree_last(struct avl_tree *tree)
+{
+	struct avl_node *node = avl_node_last(&tree->root);
+	if (!node) return NULL;
+	return AVL_NODE2DATA(node, tree->offset);
+}
+
+void *avl_tree_next(struct avl_tree *tree, void *data)
+{
+	struct avl_node *nn;
+	if (!data) return NULL;
+	nn = AVL_DATA2NODE(data, tree->offset);
+	nn = avl_node_next(nn);
+	if (!nn) return NULL;
+	return AVL_NODE2DATA(nn, tree->offset);
+}
+
+void *avl_tree_prev(struct avl_tree *tree, void *data)
+{
+	struct avl_node *nn;
+	if (!data) return NULL;
+	nn = AVL_DATA2NODE(data, tree->offset);
+	nn = avl_node_prev(nn);
+	if (!nn) return NULL;
+	return AVL_NODE2DATA(nn, tree->offset);
+}
+
+
+/* require a temporary user structure (data) which contains the key */
+void *avl_tree_find(struct avl_tree *tree, const void *data)
+{
+	struct avl_node *n = tree->root.node;
+	int (*compare)(const void*, const void*) = tree->compare;
+	int offset = tree->offset;
+	while (n) {
+		void *nd = AVL_NODE2DATA(n, offset);
+		int hr = compare(data, nd);
+		if (hr == 0) {
+			return nd;
+		}
+		else if (hr < 0) {
+			n = n->left;
+		}
+		else {
+			n = n->right;
+		}
+	}
+	return NULL;
+}
+
+
+void *avl_tree_nearest(struct avl_tree *tree, const void *data)
+{
+	struct avl_node *n = tree->root.node;
+	struct avl_node *p = NULL;
+	int (*compare)(const void*, const void*) = tree->compare;
+	int offset = tree->offset;
+	while (n) {
+		void *nd = AVL_NODE2DATA(n, offset);
+		int hr = compare(data, nd);
+		p = n;
+		if (n == 0) return nd;
+		else if (hr < 0) {
+			n = n->left;
+		}
+		else {
+			n = n->right;
+		}
+	}
+	return (p)? AVL_NODE2DATA(p, offset) : NULL;
+}
+
+
+/* returns NULL for success, otherwise returns conflict node with same key */
+void *avl_tree_add(struct avl_tree *tree, void *data)
+{
+	struct avl_node **link = &tree->root.node;
+	struct avl_node *parent = NULL;
+	struct avl_node *node = AVL_DATA2NODE(data, tree->offset);
+	int (*compare)(const void*, const void*) = tree->compare;
+	int offset = tree->offset;
+	while (link[0]) {
+		void *pd;
+		int hr;
+		parent = link[0];
+		pd = AVL_NODE2DATA(parent, offset);
+		hr = compare(data, pd);
+		if (hr == 0) {
+			return pd;
+		}	
+		else if (hr < 0) {
+			link = &(parent->left);
+		}
+		else {
+			link = &(parent->right);
+		}
+	}
+	avl_node_link(node, parent, link);
+	avl_node_post_insert(node, &tree->root);
+	tree->count++;
+	return NULL;
+}
+
+
+void avl_tree_remove(struct avl_tree *tree, void *data)
+{
+	struct avl_node *node = AVL_DATA2NODE(data, tree->offset);
+	if (!avl_node_empty(node)) {
+		avl_node_erase(node, &tree->root);
+		node->parent = node;
+		tree->count--;
+	}
+}
+
+
+void avl_tree_replace(struct avl_tree *tree, void *victim, void *newdata)
+{
+	struct avl_node *vicnode = AVL_DATA2NODE(victim, tree->offset);
+	struct avl_node *newnode = AVL_DATA2NODE(newdata, tree->offset);
+	avl_node_replace(vicnode, newnode, &tree->root);
+	vicnode->parent = vicnode;
+}
+
+
+void avl_tree_clear(struct avl_tree *tree, void (*destroy)(void *data))
+{
+	struct avl_node *next = NULL;
+	struct avl_node *node = NULL;
+	while (1) {
+		void *data;
+		node = avl_node_tear(&tree->root, &next);
+		if (node == NULL) break;
+		data = AVL_NODE2DATA(node, tree->offset);
+		node->parent = node;
+		tree->count--;
+		if (destroy) destroy(data);
+	}
+	ASSERTION(tree->count == 0);
+}
+
+
+
+
 
