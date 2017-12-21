@@ -31,7 +31,7 @@
 #define INLINE         __inline__
 #endif
 
-#elif (defined(_MSC_VER) || defined(__BORLANDC__) || defined(__WATCOMC__))
+#elif (defined(_MSC_VER) || defined(__WATCOMC__))
 #define INLINE __inline
 #else
 #define INLINE 
