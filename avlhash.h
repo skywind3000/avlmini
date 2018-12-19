@@ -26,7 +26,7 @@ typedef struct ILISTHEAD ilist_head;
 
 
 /*--------------------------------------------------------------------*/
-/* list init                                                         */
+/* list init                                                          */
 /*--------------------------------------------------------------------*/
 #define ILIST_HEAD_INIT(name) { &(name), &(name) }
 #define ILIST_HEAD(name) \
@@ -44,7 +44,7 @@ typedef struct ILISTHEAD ilist_head;
 
 
 /*--------------------------------------------------------------------*/
-/* list operation                                                    */
+/* list operation                                                     */
 /*--------------------------------------------------------------------*/
 #define ILIST_ADD(node, head) ( \
 	(node)->prev = (head), (node)->next = (head)->next, \
