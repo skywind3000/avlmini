@@ -392,7 +392,9 @@ void *avl_tree_nearest(struct avl_tree *tree, const void *data)
 		void *nd = AVL_NODE2DATA(n, offset);
 		int hr = compare(data, nd);
 		p = n;
-		if (n == 0) return nd;
+		if (hr == 0) {
+			return nd;
+		}
 		else if (hr < 0) {
 			n = n->left;
 		}
