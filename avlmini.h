@@ -71,7 +71,11 @@ struct avl_root
 #define AVL_LEFT    0        /* left child index */
 #define AVL_RIGHT   1        /* right child index */
 
+#if (!defined(offsetof)) || (defined(IHAVE_NOT_OFFSETOF))
 #define AVL_OFFSET(TYPE, MEMBER)    ((size_t) &((TYPE *)0)->MEMBER)
+#else
+#define AVL_OFFSET(TYPE, MEMBER)    offsetof(TYPE, MEMBER)
+#endif
 
 #define AVL_NODE2DATA(n, o)    ((void *)((size_t)(n) - (o)))
 #define AVL_DATA2NODE(d, o)    ((struct avl_node*)((size_t)(d) + (o)))
