@@ -69,7 +69,7 @@ https://zhuanlan.zhihu.com/p/31758048
 
 ## 标准测试
 
-标准测试主要测试默认 hash 函数，验证键值基本均匀的情况下，不必传统容器慢：
+标准测试主要测试默认 hash 函数，验证键值基本均匀的情况下，不比传统容器慢：
 
     gcc -O3 -Wall test_map.cpp -o test_map -lstdc++ -lm
 
