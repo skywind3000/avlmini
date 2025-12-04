@@ -188,7 +188,7 @@ struct avl_node** avl_hash_track(struct avl_hash_table *ht,
 	return link;
 }
 
-
+// returns NULL for success, otherwise returns conflict node
 struct avl_hash_node* avl_hash_add(struct avl_hash_table *ht,
 		struct avl_hash_node *node)
 {
@@ -652,6 +652,7 @@ void avl_map_clear(struct avl_hash_map *hm)
 		avl_map_erase(hm, entry);
 	}
 	ASSERTION(hm->ht.count == 0);
+	avl_map_rehash(hm, hm->ht.count, 1);
 }
 
 

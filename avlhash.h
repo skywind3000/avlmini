@@ -193,6 +193,7 @@ struct avl_hash_node* avl_hash_find(struct avl_hash_table *ht,
 struct avl_node** avl_hash_track(struct avl_hash_table *ht,
 		const struct avl_hash_node *node, struct avl_node **parent);
 
+// returns NULL for success, otherwise returns conflict node
 struct avl_hash_node* avl_hash_add(struct avl_hash_table *ht,
 		struct avl_hash_node *node);
 
@@ -292,7 +293,6 @@ struct avl_hash_entry* avl_map_set(struct avl_hash_map *hm,
 void* avl_map_get(struct avl_hash_map *hm, const void *key);
 
 void avl_map_erase(struct avl_hash_map *hm, struct avl_hash_entry *entry);
-
 
 /* returns 0 for success, -1 for key mismatch */
 int avl_map_remove(struct avl_hash_map *hm, const void *key);

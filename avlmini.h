@@ -194,6 +194,7 @@ void *avl_tree_nearest(struct avl_tree *tree, const void *data);
 /* returns NULL for success, otherwise returns conflict node with same key */
 void *avl_tree_add(struct avl_tree *tree, void *data);
 
+/* returns NULL for success, otherwise returns conflict node */
 void avl_tree_remove(struct avl_tree *tree, void *data);
 void avl_tree_replace(struct avl_tree *tree, void *victim, void *newdata);
 
