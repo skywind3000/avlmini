@@ -137,7 +137,7 @@ struct avl_hash_index
 	struct avl_root avlroot;	// avl root
 };
 
-#define avl_hash_INIT_SIZE    8
+#define AVL_HASH_INIT_SIZE    8
 
 
 //---------------------------------------------------------------------
@@ -152,7 +152,7 @@ struct avl_hash_table
 	int (*compare)(const void *key1, const void *key2);
 	struct ILISTHEAD head;
 	struct avl_hash_index *index;
-	struct avl_hash_index init[avl_hash_INIT_SIZE];
+	struct avl_hash_index init[AVL_HASH_INIT_SIZE];
 };
 
 
@@ -251,7 +251,6 @@ struct avl_hash_entry
 
 struct avl_hash_map
 {
-	size_t count;
 	int insert;
 	int fixed;
 	int builtin;

@@ -22,13 +22,13 @@ void avl_hash_init(struct avl_hash_table *ht,
 {
 	size_t i;
 	ht->count = 0;
-	ht->index_size = avl_hash_INIT_SIZE;
+	ht->index_size = AVL_HASH_INIT_SIZE;
 	ht->index_mask = ht->index_size - 1;
 	ht->hash = hash;
 	ht->compare = compare;
 	ilist_init(&ht->head);
 	ht->index = ht->init;
-	for (i = 0; i < avl_hash_INIT_SIZE; i++) {
+	for (i = 0; i < AVL_HASH_INIT_SIZE; i++) {
 		ht->index[i].avlroot.node = NULL;
 		ilist_init(&(ht->index[i].node));
 	}
@@ -145,10 +145,12 @@ void avl_hash_erase(struct avl_hash_table *ht, struct avl_hash_node *node)
 	index = &ht->index[node->hash & ht->index_mask];
 	if (index->avlroot.node == &node->avlnode && node->avlnode.height == 1) {
 		index->avlroot.node = NULL;
-		ilist_del_init(&index->node);
 	}
 	else {
 		avl_node_erase(&node->avlnode, &index->avlroot);
+	}
+	if (index->avlroot.node == NULL) {
+		ilist_del_init(&index->node);
 	}
 	avl_node_init(&node->avlnode);
 	ht->count--;
@@ -255,13 +257,18 @@ void* avl_hash_swap(struct avl_hash_table *ht, void *ptr, size_t nbytes)
 	size_t index_size = 1;
 	struct ILISTHEAD head;
 	size_t i;
-	ASSERTION(nbytes >= sizeof(struct avl_hash_index));
+	if (new_index != NULL) {
+		if (nbytes < sizeof(struct avl_hash_index)) {
+			ASSERTION(nbytes >= sizeof(struct avl_hash_index));
+			return NULL;
+		}
+	}
 	if (new_index == NULL) {
 		if (ht->index == ht->init) {
 			return NULL;
 		}
 		new_index = ht->init;
-		index_size = avl_hash_INIT_SIZE;
+		index_size = AVL_HASH_INIT_SIZE;
 	}
 	else if (new_index == old_index) {
 		return old_index;
@@ -359,7 +366,7 @@ void* avl_fastbin_new(struct avl_fastbin *fb)
 		fb->next = AVL_NEXT(fb->next);
 		return obj;
 	}
-	if (fb->start + obj_size > fb->endup) {
+	if (fb->start == NULL || fb->start + obj_size > fb->endup) {
 		char *page = (char*)malloc(fb->page_size);
 		size_t lineptr = (size_t)page;
 		ASSERTION(page);
@@ -426,7 +433,6 @@ struct avl_hash_entry* avl_map_prev(struct avl_hash_map *hm,
 void avl_map_init(struct avl_hash_map *hm, size_t (*hash)(const void*),
 		int (*compare)(const void *, const void *))
 {
-	hm->count = 0;
 	hm->key_copy = NULL;
 	hm->key_destroy = NULL;
 	hm->value_copy = NULL;
@@ -539,28 +545,56 @@ avl_hash_update(struct avl_hash_map *hm, void *key, void *value, int update)
 	return entry;
 }
 
-static inline void avl_map_rehash(struct avl_hash_map *hm, size_t capacity)
+static inline void avl_map_rehash(struct avl_hash_map *hm, size_t capacity, int shrink)
 {
 	size_t isize = hm->ht.index_size;
-	size_t limit = (capacity * 6) >> 2;    /* capacity * 6 / 4 */
-	if (isize < limit && hm->fixed == 0) {
+	if (hm->fixed) return;
+	if (shrink == 0) {
+		size_t upper = (capacity * 6) >> 2;    /* capacity * 6 / 4 */
+		if (isize < upper) {
+			size_t need = isize;
+			size_t size;
+			void *ptr;
+			while (need < upper) need <<= 1;
+			size = need * sizeof(struct avl_hash_index);
+			ptr = malloc(size);
+			ASSERTION(ptr);
+			ptr = avl_hash_swap(&hm->ht, ptr, size);
+			if (ptr) {
+				free(ptr);
+			}
+		}
+	}
+	else {
+		size_t lower = isize >> 2;
 		size_t need = isize;
-		size_t size;
-		void *ptr;
-		while (need < limit) need <<= 1;
-		size = need * sizeof(struct avl_hash_index);
-		ptr = malloc(size);
-		ASSERTION(ptr);
-		ptr = avl_hash_swap(&hm->ht, ptr, size);
-		if (ptr) {
-			free(ptr);
+		if (isize <= AVL_HASH_INIT_SIZE) return;
+		if (capacity >= lower) return;
+		while (need > AVL_HASH_INIT_SIZE && capacity <= (need >> 2)) {
+			need = need >> 1;
+		}
+		if (need == isize) return;
+		if (need <= AVL_HASH_INIT_SIZE) {
+			void *oldptr = avl_hash_swap(&hm->ht, NULL, 0);
+			if (oldptr) {
+				free(oldptr);
+			}
+		}
+		else {
+			size_t size = need * sizeof(struct avl_hash_index);
+			void *ptr = malloc(size);
+			ASSERTION(ptr);
+			ptr = avl_hash_swap(&hm->ht, ptr, size);
+			if (ptr) {
+				free(ptr);
+			}
 		}
 	}
 }
 
 void avl_map_reserve(struct avl_hash_map *hm, size_t capacity)
 {
-	avl_map_rehash(hm, capacity);
+	avl_map_rehash(hm, capacity, 0);
 }
 
 struct avl_hash_entry* 
@@ -568,15 +602,15 @@ avl_map_add(struct avl_hash_map *hm, void *key, void *value, int *success)
 {
 	struct avl_hash_entry *entry = avl_hash_update(hm, key, value, 0);
 	if (success) success[0] = hm->insert;
-	avl_map_rehash(hm, hm->ht.count);
+	avl_map_rehash(hm, hm->ht.count, 0);
 	return entry;
 }
 
 struct avl_hash_entry*
 avl_map_set(struct avl_hash_map *hm, void *key, void *value)
 {
-	struct avl_hash_entry *entry = avl_hash_update(hm, key, value, 0);
-	avl_map_rehash(hm, hm->ht.count);
+	struct avl_hash_entry *entry = avl_hash_update(hm, key, value, 1);
+	avl_map_rehash(hm, hm->ht.count, 0);
 	return entry;
 }
 
@@ -596,6 +630,7 @@ void avl_map_erase(struct avl_hash_map *hm, struct avl_hash_entry *entry)
 	entry->node.key = NULL;
 	entry->value = NULL;
 	avl_fastbin_del(&hm->fb, entry);
+	avl_map_rehash(hm, hm->ht.count, 1);
 }
 
 int avl_map_remove(struct avl_hash_map *hm, const void *key)
@@ -616,7 +651,7 @@ void avl_map_clear(struct avl_hash_map *hm)
 		if (entry == NULL) break;
 		avl_map_erase(hm, entry);
 	}
-	ASSERTION(hm->count == 0);
+	ASSERTION(hm->ht.count == 0);
 }
 
 
