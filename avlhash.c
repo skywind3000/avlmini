@@ -655,4 +655,9 @@ void avl_map_clear(struct avl_hash_map *hm)
 	avl_map_rehash(hm, hm->ht.count, 1);
 }
 
+size_t avl_map_count(const struct avl_hash_map *hm)
+{
+	return hm->ht.count;
+}
+
 

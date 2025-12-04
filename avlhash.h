@@ -299,6 +299,8 @@ int avl_map_remove(struct avl_hash_map *hm, const void *key);
 
 void avl_map_clear(struct avl_hash_map *hm);
 
+size_t avl_map_count(const struct avl_hash_map *hm);
+
 
 /*--------------------------------------------------------------------*/
 /* fast inline search template                                        */
