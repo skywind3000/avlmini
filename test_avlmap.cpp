@@ -166,7 +166,7 @@ void benchmark(const char *name, int mode, int count)
 	ts = gettime() - ts;
 	printf("%dms\n", (int)ts);
 
-	delete keys;
+	delete []keys;
 	printf("\n");
 }
 
